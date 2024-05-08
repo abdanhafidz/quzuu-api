@@ -82,8 +82,8 @@ type AccountDetails struct {
 type Events struct {
 	IDEvent    uint `gorm:"primaryKey"`
 	Title      string
-	StartEvent time.Time
-	EndEvent   time.Time
+	StartEvent string
+	EndEvent   string
 	SID        string
 	Public     string
 }

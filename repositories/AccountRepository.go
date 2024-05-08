@@ -3,7 +3,6 @@ package repositories
 import (
 	"errors"
 
-	"github.com/quzuu-be/config"
 	"github.com/quzuu-be/middleware"
 	"github.com/quzuu-be/models"
 	"gorm.io/gorm"
@@ -11,7 +10,6 @@ import (
 
 func GetAccount(username *string) (res *models.Account, count int, err error) {
 	var Account models.Account
-	db := config.DB
 	find := db.Find(&Account, "username = ?", username)
 	res = &Account
 	count = int(find.RowsAffected)
@@ -27,8 +25,6 @@ func CreateAccount(data *models.RegisterRequest) (res *models.Account, status st
 		Password:    hash_password,
 		PhoneNumber: data.Phone,
 	}
-
-	db := config.DB
 	createUser := db.Create(&Account)
 	Account.Password = "SECRET"
 	res = &Account

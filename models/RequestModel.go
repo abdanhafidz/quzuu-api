@@ -18,3 +18,7 @@ type EventListRequest struct {
 	PageNumber int    `form:"page_number"`
 	Filter     string `form:"filter"`
 }
+
+type EventDetailRequest struct {
+	IDEvent int `form:"id_event"`
+}

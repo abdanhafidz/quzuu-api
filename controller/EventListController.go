@@ -22,7 +22,7 @@ func EventListController(c *gin.Context) {
 		req.Filter = ""
 		data, status, err = services.EventListService(&req)
 		if status == "ok" && err == nil {
-			middleware.SendJSON200(c, &data)
+			middleware.SendJSON200(c, data)
 		} else {
 			panic(err)
 		}
