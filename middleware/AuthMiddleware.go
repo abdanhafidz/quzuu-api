@@ -4,7 +4,7 @@ package middleware
 
 import (
 	"errors"
-	"net/http"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -51,23 +51,25 @@ func HashPassword(password string) (string, error) {
 }
 
 type CustomClaims struct {
-	IDUser int `json:"id"`
 	jwt.StandardClaims
+	IDUser int `json:"id"`
 }
 
-func VerifyToken() (int, string, error) {
-	var r *http.Request
-	bearer_token := r.Header.Get("Auth-Bearer-Token")
-	token, err := jwt.Parse(bearer_token, func(token *jwt.Token) (interface{}, error) {
+func VerifyToken(bearer_token string) (int, string, error) {
+	fmt.Println(bearer_token)
+	token, err := jwt.ParseWithClaims(bearer_token, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
 	claims, ok := token.Claims.(*CustomClaims)
-
-	if !ok || !token.Valid {
+	fmt.Println("ID USER : ", claims.IDUser)
+	if !ok && !token.Valid {
 		return 0, "invalid-token", err
 	} else if claims.StandardClaims.ExpiresAt != 0 && claims.ExpiresAt < time.Now().Unix() {
 		return 0, "expired", err
+	} else if !ok && token.Valid {
+		return 0, "failed", err
 	}
+	
 	return claims.IDUser, "valid", err
 }

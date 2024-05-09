@@ -10,7 +10,7 @@ import (
 func ProblemSetController(c *gin.Context) {
 	var req models.EventDetailRequest
 	c.ShouldBind(&req)
-	data, status, err := services.EventDetailService(&req)
+	data, status, err := services.ProblemSetService(&req)
 	if err != nil && status != "no-record" {
 		panic(err)
 	}

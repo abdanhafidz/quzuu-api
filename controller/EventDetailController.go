@@ -13,9 +13,17 @@ func EventDetailController(c *gin.Context) {
 
 	var req models.EventDetailRequest
 	c.ShouldBind(&req)
-	ID_User, verify_status, err_verif := middleware.VerifyToken()
+	token := c.Request.Header["Auth-Bearer-Token"]
+	var ID_User int
+	var verify_status string
+	var err_verif error
+	if(token != nil){
+	ID_User, verify_status, err_verif = middleware.VerifyToken(token[0])
 	if verify_status == "invalid-token" || verify_status == "expired" {
 		ID_User = 0
+	}
+	}else{
+		ID_User, verify_status = 0,"no-token"
 	}
 	data, status, err := services.EventDetailService(&req, ID_User)
 	if err != nil && status != "no-record" && err_verif != nil {

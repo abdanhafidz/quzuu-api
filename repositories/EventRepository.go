@@ -4,10 +4,9 @@ import (
 	"github.com/quzuu-be/models"
 )
 
-func GetEventList(offset int, limit int, filter string) (res interface{}, status string, err error) {
+func GetEventList(offset int, limit int, filter string, id_account int) (res interface{}, status string, err error) {
 	var e []models.Events
-
-	eventList := db.Limit(limit).Offset(offset).Where("title LIKE ? OR 1=1 AND public = 'Y' ", filter).Find(&e)
+	eventList := db.Rawr("(SELECT events.id_event,events.title, events.start_event, events.end_event, events.s_id, events.public FROM events WHERE public = 'Y' ) UNION (SELECT events.id_event,events.title, events.start_event, events.end_event, events.s_id, events.public FROM events INNER JOIN event_assign ON events.id_event=event_assign.id_event WHERE event_assign.id_account = ? )", id_account).Limit(limit).Offset(offset).Where("title LIKE ? OR 1=1", filter).Find(&e)
 	err = eventList.Error
 	if eventList.RowsAffected == 0 {
 		status = "no-record"
