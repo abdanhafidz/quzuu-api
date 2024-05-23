@@ -67,6 +67,9 @@ type ProblemSet struct {
 	Title        string
 	Duration     time.Time
 	Randomize    uint
+	MC_Count     uint
+	SA_Count     uint
+	Essay_Count  uint
 }
 
 type AccountDetails struct {
@@ -82,8 +85,8 @@ type AccountDetails struct {
 type Events struct {
 	IDEvent    uint `gorm:"primaryKey"`
 	Title      string
-	StartEvent string
-	EndEvent   string
+	StartEvent time.Time
+	EndEvent   time.Time
 	SID        string
 	Public     string
 }

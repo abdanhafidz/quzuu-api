@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 	"github.com/quzuu-be/config"
 	"github.com/quzuu-be/models"
 	"golang.org/x/crypto/bcrypt"
@@ -62,7 +63,6 @@ func VerifyToken(bearer_token string) (int, string, error) {
 	})
 
 	claims, ok := token.Claims.(*CustomClaims)
-	fmt.Println("ID USER : ", claims.IDUser)
 	if !ok && !token.Valid {
 		return 0, "invalid-token", err
 	} else if claims.StandardClaims.ExpiresAt != 0 && claims.ExpiresAt < time.Now().Unix() {
@@ -70,6 +70,19 @@ func VerifyToken(bearer_token string) (int, string, error) {
 	} else if !ok && token.Valid {
 		return 0, "failed", err
 	}
-	
+
 	return claims.IDUser, "valid", err
+}
+
+func AuthUser(c *gin.Context) (ID_User int, verify_status string, err_verif error) {
+	token := c.Request.Header["Auth-Bearer-Token"]
+	if token != nil {
+		ID_User, verify_status, err_verif = VerifyToken(token[0])
+		if verify_status == "invalid-token" || verify_status == "expired" {
+			ID_User = 0
+		}
+	} else {
+		ID_User, verify_status = 0, "no-token"
+	}
+	return ID_User, verify_status, err_verif
 }

@@ -22,3 +22,18 @@ type EventListRequest struct {
 type EventDetailRequest struct {
 	IDEvent int `form:"id_event"`
 }
+
+type ProblemSetRequest struct {
+	IDEvent int `form:"id_event"`
+}
+
+type GetExamRequest struct {
+	IDEvent      int `form:"id_event"`
+	IDProblemSet int `form:"id_problem_set"`
+}
+
+type RegisterEventRequest struct {
+	IDEvent   int    `form:"id_event"`
+	IDAccount int    `form:"id_account"`
+	EventCode string `form:"event_code"`
+}

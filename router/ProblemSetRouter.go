@@ -6,8 +6,8 @@ import (
 )
 
 func ProblemSetRoutes(route *gin.Engine) {
-	eventDetailRouter := route.Group("/api")
+	problemSetRouter := route.Group("/api")
 	{
-		eventDetailRouter.GET("/problemset-list", controller.ProblemSetController)
+		problemSetRouter.GET("/problemset-list", controller.ProblemSetController)
 	}
 }

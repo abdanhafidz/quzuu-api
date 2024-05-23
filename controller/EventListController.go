@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/quzuu-be/middleware"
@@ -13,18 +12,7 @@ import (
 func EventListController(c *gin.Context) {
 	var req models.EventListRequest
 	c.ShouldBind(&req)
-	token := c.Request.Header["Auth-Bearer-Token"]
-	var ID_User int
-	var verify_status string
-	var err_verif error
-	if(token != nil){
-	ID_User, verify_status, err_verif = middleware.VerifyToken(token[0])
-	if verify_status == "invalid-token" || verify_status == "expired" {
-		ID_User = 0
-	}
-	}else{
-		ID_User, verify_status = 0,"no-token"
-	}
+	ID_User, _, err_verif := middleware.AuthUser(c)
 	data, status, err := services.EventListService(&req, ID_User)
 	if err != nil && status != "no-record" && err_verif != nil {
 		err = errors.Join(err, err_verif)
@@ -40,10 +28,12 @@ func EventListController(c *gin.Context) {
 		if status == "ok" && err == nil {
 			middleware.SendJSON200(c, data)
 		} else {
-			fmt.Println(verify_status)
+			msg := "There is an internal server error while sending request!"
+			middleware.SendJSON500(c, &status, &msg)
 		}
 	} else {
 		msg := "There is an internal server error while sending request!"
-		middleware.SendJSON500(c, &msg)
+		status = "InternalError"
+		middleware.SendJSON500(c, &status, &msg)
 	}
 }

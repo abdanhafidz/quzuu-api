@@ -1,7 +1,21 @@
 package middleware
 
-type arg func(param any)
+import (
+	"fmt"
 
-func Routes(at string, f arg) {
-	f(at)
+	"gorm.io/gorm"
+)
+
+func RecordCheck(rows *gorm.DB) (string, error) {
+	count := rows.RowsAffected
+	err := rows.Error
+	fmt.Println(rows)
+	fmt.Println(count)
+	if count == 0 {
+		return "no-record", err
+	} else if err != nil {
+		return "query-error", err
+	} else {
+		return "ok", err
+	}
 }

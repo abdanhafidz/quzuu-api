@@ -20,6 +20,7 @@ func LoginController(c *gin.Context) {
 	if authStatus == "ok" {
 		middleware.SendJSON200(c, &data)
 	} else {
-		middleware.SendJSON401(c, &authStatus)
+		status := "InvalidUser"
+		middleware.SendJSON401(c, &status, &authStatus)
 	}
 }

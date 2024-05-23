@@ -7,10 +7,13 @@ import (
 	"github.com/quzuu-be/services"
 )
 
-func RegisterController(c *gin.Context) {
-	var regReq models.RegisterRequest
-	c.ShouldBind(&regReq)
-	data, status, err := services.RegisterService(&regReq)
+func EventRegisterController(c *gin.Context) {
+	var Req models.RegisterEventRequest
+	c.ShouldBind(&Req)
+	id_event := Req.IDEvent
+	id_account := Req.IDAccount
+	event_code := Req.EventCode
+	data, status, err := services.EventRegisterService(id_event, id_account, event_code)
 	if err != nil && status != "duplicate" {
 		panic(err)
 	}
