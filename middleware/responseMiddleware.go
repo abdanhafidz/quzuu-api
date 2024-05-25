@@ -12,8 +12,8 @@ func SendJSON200(c *gin.Context, data interface{}) {
 }
 
 // SendJSON400 sends a JSON response with HTTP status code 400
-func SendJSON400(c *gin.Context, message *string) {
-	c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": message})
+func SendJSON400(c *gin.Context, error_status *string, message *string) {
+	c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error-status": error_status, "message": message})
 }
 
 // SendJSON401 sends a JSON response with HTTP status code 401

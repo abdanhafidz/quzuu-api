@@ -57,32 +57,37 @@ type CustomClaims struct {
 }
 
 func VerifyToken(bearer_token string) (int, string, error) {
-	fmt.Println(bearer_token)
+	// fmt.Println(bearer_token)
 	token, err := jwt.ParseWithClaims(bearer_token, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
-
+	if err != nil {
+		return 0, "invalid-token", err
+	}
 	claims, ok := token.Claims.(*CustomClaims)
-	if !ok && !token.Valid {
+	if !ok || !token.Valid {
 		return 0, "invalid-token", err
 	} else if claims.StandardClaims.ExpiresAt != 0 && claims.ExpiresAt < time.Now().Unix() {
 		return 0, "expired", err
 	} else if !ok && token.Valid {
-		return 0, "failed", err
+		return 0, "invalid-token", err
 	}
 
 	return claims.IDUser, "valid", err
 }
 
 func AuthUser(c *gin.Context) (ID_User int, verify_status string, err_verif error) {
-	token := c.Request.Header["Auth-Bearer-Token"]
-	if token != nil {
+	if c.Request.Header["Auth-Bearer-Token"] != nil {
+		token := c.Request.Header["Auth-Bearer-Token"]
 		ID_User, verify_status, err_verif = VerifyToken(token[0])
+		fmt.Println("Verify Status :", verify_status)
 		if verify_status == "invalid-token" || verify_status == "expired" {
 			ID_User = 0
 		}
 	} else {
-		ID_User, verify_status = 0, "no-token"
+		ID_User = 0
+		verify_status = "invalid-token"
+		err_verif = nil
 	}
 	return ID_User, verify_status, err_verif
 }

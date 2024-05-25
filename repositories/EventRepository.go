@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/quzuu-be/models"
 	"gorm.io/gorm"
 )
@@ -26,7 +28,17 @@ func GetEventDetail(id_event int) (data *models.Events, eventDetail *gorm.DB) {
 	eventDetail = db.Where("id_event = ?", id_event).Find(&e)
 	return &e, eventDetail
 }
-
-// func AssignEvent(id_account int, id_event int) (res interface{}, status string, err error) {
-// 	return 0, 0, error()
-// }
+func GetEventDetailByCode(event_code string) (data *models.Events, eventDetailbyCode *gorm.DB) {
+	var e models.Events
+	eventDetailbyCode = db.Raw("SELECT * FROM events WHERE events.s_id = ?", event_code).Find(&e)
+	return &e, eventDetailbyCode
+}
+func CreateEventAssign(id_event int, id_account int) (data interface{}, AssignUsertoEvent *gorm.DB) {
+	e := &models.EventAssign{
+		IDAccount:  uint(id_account),
+		IDEvent:    uint(id_event),
+		AssignedAt: time.Now(),
+	}
+	AssignUsertoEvent = db.Create(&e)
+	return &e, AssignUsertoEvent
+}
