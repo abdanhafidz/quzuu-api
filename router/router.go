@@ -13,5 +13,6 @@ func StartService() {
 	EventDetailRoutes(router)
 	ProblemSetRoutes(router)
 	EventRegisterRoutes(router)
+	ExamRoutes(router)
 	router.Run()
 }

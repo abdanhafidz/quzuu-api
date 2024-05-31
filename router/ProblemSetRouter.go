@@ -9,5 +9,6 @@ func ProblemSetRoutes(route *gin.Engine) {
 	problemSetRouter := route.Group("/api")
 	{
 		problemSetRouter.GET("/problemset-list", controller.ProblemSetController)
+		problemSetRouter.GET("/questions", controller.QuestionsController)
 	}
 }

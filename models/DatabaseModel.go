@@ -55,6 +55,18 @@ type ShortAnsQuestion struct {
 	IDProblemSet uint
 }
 
+type InteractiveQuestion struct {
+	IDIntvQuestion uint `gorm:"primaryKey"`
+	Question       string
+	AnsKey         string
+	Message        string
+	Click          string
+	CorrMark       float64
+	IncorrMark     float64
+	NullMark       float64
+	IDProblemSet   uint
+}
+
 type EssayQuestion struct {
 	IDEssayQuestion uint `gorm:"primaryKey"`
 	Question        int64
@@ -130,15 +142,16 @@ type ExamProgress struct {
 }
 
 // Gorm table name settings
-func (ProblemSetAssign) TableName() string { return "problem_sets_assign" }
-func (Announcement) TableName() string     { return "announcement" }
-func (Account) TableName() string          { return "account" }
-func (MCQuestion) TableName() string       { return "mc_questions" }
-func (ShortAnsQuestion) TableName() string { return "shortans_questions" }
-func (EssayQuestion) TableName() string    { return "essay_questions" }
-func (ProblemSet) TableName() string       { return "problem_sets" }
-func (AccountDetails) TableName() string   { return "account_details" }
-func (Events) TableName() string           { return "events" }
-func (EventAssign) TableName() string      { return "event_assign" }
-func (Result) TableName() string           { return "result" }
-func (ExamProgress) TableName() string     { return "exam_progress" }
+func (ProblemSetAssign) TableName() string    { return "problem_sets_assign" }
+func (Announcement) TableName() string        { return "announcement" }
+func (Account) TableName() string             { return "account" }
+func (MCQuestion) TableName() string          { return "mc_questions" }
+func (ShortAnsQuestion) TableName() string    { return "shortans_questions" }
+func (EssayQuestion) TableName() string       { return "essay_questions" }
+func (ProblemSet) TableName() string          { return "problem_sets" }
+func (AccountDetails) TableName() string      { return "account_details" }
+func (Events) TableName() string              { return "events" }
+func (EventAssign) TableName() string         { return "event_assign" }
+func (Result) TableName() string              { return "result" }
+func (ExamProgress) TableName() string        { return "exam_progress" }
+func (InteractiveQuestion) TableName() string { return "interactive_questions" }

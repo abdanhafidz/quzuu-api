@@ -31,6 +31,7 @@ func AutoMigrateAll(db *gorm.DB) {
 		&models.EventAssign{},
 		&models.Result{},
 		&models.ExamProgress{},
+		&models.InteractiveQuestion{},
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -49,6 +50,7 @@ func init() {
 		fmt.Println("Gagal membaca file .env")
 		return
 	}
+	os.Setenv("TZ", "Asia/Jakarta")
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbUser := os.Getenv("DB_USER")

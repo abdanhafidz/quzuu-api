@@ -27,7 +27,7 @@ type ProblemSetRequest struct {
 	IDEvent int `form:"id_event"`
 }
 
-type GetExamRequest struct {
+type ExamRequest struct {
 	IDEvent      int `form:"id_event"`
 	IDProblemSet int `form:"id_problem_set"`
 }
@@ -35,4 +35,13 @@ type GetExamRequest struct {
 type RegisterEventRequest struct {
 	IDEvent   int    `form:"id_event"`
 	EventCode string `form:"event_code"`
+}
+
+type QuestionRequest struct {
+	IDProblemSet int `form:"id_problem_set"`
+}
+
+type SubmitRequest struct {
+	IDEvent      int `form:"id_event"`
+	IDProblemSet int `form:"id_problem_set"`
 }
