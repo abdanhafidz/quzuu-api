@@ -30,50 +30,20 @@ type Account struct {
 	DeletedAt   time.Time
 }
 
-type MCQuestion struct {
-	IDMCQuestion uint `gorm:"primaryKey"`
-	Question     int64
-	Opt1         string
-	Opt2         string
-	Opt3         string
-	Opt4         string
-	Opt5         string
-	AnsKey       int64
-	CorrMark     float64
-	IncorrMark   float64
-	NullMark     float64
-	IDProblemSet uint
-}
-
-type ShortAnsQuestion struct {
-	IDSAQuestion uint `gorm:"primaryKey"`
+type Questions struct {
+	IDQuestion   uint   `gorm:"primaryKey"`
+	Type         string //MultChoices, ShortAns, Essay, IntPuzzle, IntType
 	Question     string
-	AnsKey       string
+	Options      []string `gorm:"type:text[]"`
+	AnsKey       []string `gorm:"type:text[]"`
 	CorrMark     float64
 	IncorrMark   float64
 	NullMark     float64
 	IDProblemSet uint
 }
 
-type InteractiveQuestion struct {
-	IDIntvQuestion uint `gorm:"primaryKey"`
-	Question       string
-	AnsKey         string
-	Message        string
-	Click          string
-	CorrMark       float64
-	IncorrMark     float64
-	NullMark       float64
-	IDProblemSet   uint
-}
-
-type EssayQuestion struct {
-	IDEssayQuestion uint `gorm:"primaryKey"`
-	Question        int64
-	Mark            float64
-	IDProblemSet    uint
-}
-
+// x = 1, x = 2, x = 3, x = 4
+// x++, x--, x+=1, x**, x/=1
 type ProblemSet struct {
 	IDProblemSet uint `gorm:"primaryKey"`
 	Title        string
@@ -111,23 +81,20 @@ type EventAssign struct {
 }
 
 type Result struct {
-	IDResult     uint `gorm:"primaryKey"`
-	IDAccount    uint
-	IDEvent      uint
-	IDProblemSet uint
-	IDProgress   uint
-	FinishTime   time.Time
-	CorrectMC    uint
-	IncorrectMC  uint
-	NullMC       uint
-	CorrectSA    uint
-	IncorrectSA  uint
-	NullSA       uint
-	EssayScoring float64
-	MCScore      float64
-	SAScore      float64
-	EssayScore   float64
-	FinalScore   float64
+	IDResult      uint `gorm:"primaryKey"`
+	IDAccount     uint
+	IDEvent       uint
+	IDProblemSet  uint
+	IDProgress    uint
+	FinishTime    time.Time
+	Correct       uint
+	Incorrect     uint
+	Empty         uint
+	OnCorrection  uint
+	ManualScoring float64
+	MCScore       float64
+	ManualScore   float64
+	FinalScore    float64
 }
 
 type ExamProgress struct {
@@ -137,21 +104,18 @@ type ExamProgress struct {
 	IDProblemSet   uint
 	CreatedAt      time.Time
 	DueAt          time.Time
-	QuestionsOrder string
-	Answers        string
+	QuestionsOrder []string   `gorm:"type:text[]"`
+	Answers        [][]string `gorm:"type:text[][]"`
 }
 
 // Gorm table name settings
-func (ProblemSetAssign) TableName() string    { return "problem_sets_assign" }
-func (Announcement) TableName() string        { return "announcement" }
-func (Account) TableName() string             { return "account" }
-func (MCQuestion) TableName() string          { return "mc_questions" }
-func (ShortAnsQuestion) TableName() string    { return "shortans_questions" }
-func (EssayQuestion) TableName() string       { return "essay_questions" }
-func (ProblemSet) TableName() string          { return "problem_sets" }
-func (AccountDetails) TableName() string      { return "account_details" }
-func (Events) TableName() string              { return "events" }
-func (EventAssign) TableName() string         { return "event_assign" }
-func (Result) TableName() string              { return "result" }
-func (ExamProgress) TableName() string        { return "exam_progress" }
-func (InteractiveQuestion) TableName() string { return "interactive_questions" }
+func (ProblemSetAssign) TableName() string { return "problem_sets_assign" }
+func (Announcement) TableName() string     { return "announcement" }
+func (Account) TableName() string          { return "account" }
+func (Questions) TableName() string        { return "questions" }
+func (ProblemSet) TableName() string       { return "problem_sets" }
+func (AccountDetails) TableName() string   { return "account_details" }
+func (Events) TableName() string           { return "events" }
+func (EventAssign) TableName() string      { return "event_assign" }
+func (Result) TableName() string           { return "result" }
+func (ExamProgress) TableName() string     { return "exam_progress" }

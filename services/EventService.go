@@ -66,7 +66,7 @@ func EventDetailService(id_event int, id_account int) (DetailResponse models.Eve
 		}, statusAssign, err
 	}
 
-}
+} 
 func GetEventStatus(id_event int, id_account int) (res string, status string, err error) {
 	eventData, statusDetail, err := EventDetailService(id_event, id_account)
 	if statusDetail == "ok" {

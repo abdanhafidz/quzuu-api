@@ -28,9 +28,10 @@ func GetEventDetail(id_event int) (data *models.Events, eventDetail *gorm.DB) {
 	eventDetail = db.Where("id_event = ?", id_event).Find(&e)
 	return &e, eventDetail
 }
+
 func GetEventDetailByCode(event_code string) (data *models.Events, eventDetailbyCode *gorm.DB) {
 	var e models.Events
-	eventDetailbyCode = db.Raw("SELECT * FROM events WHERE events.s_id = ?", event_code).Find(&e)
+	eventDetailbyCode = db.Raw("SELECT * FROM events WHERE s_id = ?", event_code).Find(&e)
 	return &e, eventDetailbyCode
 }
 func CreateEventAssign(id_event int, id_account int) (data interface{}, AssignUsertoEvent *gorm.DB) {

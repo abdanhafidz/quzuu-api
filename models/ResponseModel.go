@@ -1,11 +1,11 @@
 package models
 
-type QuestionsResponse struct {
-	MCQuestions          interface{}
-	SAQuestions          interface{}
-	EssayQuestions       interface{}
-	InteractiveQuestions interface{}
-}
+// type QuestionsResponse struct {
+// 	MCQuestions          interface{}
+// 	SAQuestions          interface{}
+// 	EssayQuestions       interface{}
+// 	InteractiveQuestions interface{}
+// }
 
 type Duration struct {
 	Hour int

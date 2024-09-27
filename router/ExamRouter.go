@@ -8,6 +8,6 @@ import (
 func ExamRoutes(route *gin.Engine) {
 	examRouter := route.Group("/api")
 	{
-		examRouter.GET("/get-exam", controller.ExamController)
+		examRouter.POST("/exam", controller.ExamController)
 	}
 }

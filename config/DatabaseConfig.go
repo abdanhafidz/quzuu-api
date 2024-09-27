@@ -22,16 +22,13 @@ func AutoMigrateAll(db *gorm.DB) {
 		&models.ProblemSetAssign{},
 		&models.Announcement{},
 		&models.Account{},
-		&models.MCQuestion{},
-		&models.ShortAnsQuestion{},
-		&models.EssayQuestion{},
+		&models.Questions{},
 		&models.ProblemSet{},
 		&models.AccountDetails{},
 		&models.Events{},
 		&models.EventAssign{},
 		&models.Result{},
 		&models.ExamProgress{},
-		&models.InteractiveQuestion{},
 	)
 	if err != nil {
 		log.Fatal(err)

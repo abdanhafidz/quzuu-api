@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"strings"
 	"time"
 
 	"github.com/quzuu-be/models"
@@ -13,92 +14,54 @@ func GetProgress(id_event int, id_account int, id_problem_set int) (res *models.
 	return &e, progress
 }
 
-type MCOnGoingExam struct {
-	IDMCQuestion uint
-	Question     int64
-	Opt1         string
-	Opt2         string
-	Opt3         string
-	Opt4         string
-	Opt5         string
-	IDProblemSet uint
-}
-type SAOnGoingExam struct {
-	IDSAQuestion uint
+type QuestionsOnGoingExam struct {
+	IDQuestion   uint
+	Type         string //MultChoices, ShortAns, Essay, IntPuzzle, IntType
 	Question     string
+	Options      [][]string
 	IDProblemSet uint
 }
 
-type EssayOnGoingExam struct {
-	IDEssayQuestion uint `gorm:"primaryKey"`
-	Question        int64
-	IDProblemSet    uint
-}
-
-type InteractiveOnGoingExam struct {
-	IDIntvQuestion uint
-	Question       string
-	IDProblemSet   uint
-}
-
-func GetMCQuestions(id_problem_set int, finished bool) (res interface{}, MCQuestions *gorm.DB) {
-
-	if !finished {
-		var e []MCOnGoingExam
-		MCQuestions = db.Table("mc_questions").Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	} else {
-		var e models.MCQuestion
-		MCQuestions = db.Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
+func CastAnswerFrame(id_problem_set int) (ans [][]string) {
+	type Lquestions struct {
+		cnt_array int
 	}
-}
-
-func GetSAQuestions(id_problem_set int, finished bool) (res interface{}, MCQuestions *gorm.DB) {
-
-	if !finished {
-		var e []SAOnGoingExam
-		MCQuestions = db.Table("sa_quetsions").Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	} else {
-		var e []models.ShortAnsQuestion
-		MCQuestions = db.Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
+	var e []Lquestions
+	db.Raw("SELECT array_length(ans_key, 1) as cnt_array FROM questions WHERE id_problem_set = ? ORDER BY id_question", id_problem_set).Find(&e)
+	i := 0
+	for _, t := range e {
+		ansString := strings.Repeat("0,", t.cnt_array-1) + "0"
+		ansArray := strings.Split(ansString, ",")
+		ans[i] = ansArray
+		i++
 	}
+	return ans
 }
 
-func GetEssayQuestions(id_problem_set int, finished bool) (res interface{}, MCQuestions *gorm.DB) {
-
-	if !finished {
-		var e []EssayOnGoingExam
-		MCQuestions = db.Table("essay_questions").Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	} else {
-		var e []models.EssayQuestion
-		MCQuestions = db.Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	}
+func GetQuestions(id_problem_set int) (res []QuestionsOnGoingExam, MCQuestions *gorm.DB) {
+	var e []QuestionsOnGoingExam
+	MCQuestions = db.Raw("SELECT * FROM questions WHERE id_problem_set = ? ORDER BY id_question ASC", id_problem_set).Find(&e)
+	return e, MCQuestions
 }
 
-func GetInteractiveQuestions(id_problem_set int, finished bool) (res interface{}, MCQuestions *gorm.DB) {
-
-	if !finished {
-		var e []InteractiveOnGoingExam
-		MCQuestions = db.Table("interactive_questions").Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	} else {
-		var e []models.InteractiveQuestion
-		MCQuestions = db.Where("id_problem_set = ? ", id_problem_set).Find(&e)
-		return &e, MCQuestions
-	}
+func GetQuestionsReview(id_problem_set int) (res []models.Questions, MCQuestions *gorm.DB) {
+	var e []models.Questions
+	MCQuestions = db.Raw("SELECT * FROM questions WHERE id_problem_set = ? ORDER BY id_question ASC", id_problem_set).Find(&e)
+	return e, MCQuestions
 }
-func CreateProgress(id_event int, id_account int, id_problem_set int, due time.Time) (res interface{}, createProgress *gorm.DB) {
+
+// func GetAnsKey(id_problem_set int) (res []string, MCQuestions *gorm.DB) {
+
+// }
+
+func CreateProgress(id_event int, id_account int, id_problem_set int, due time.Time, ans [][]string) (res interface{}, createProgress *gorm.DB) {
 	e := &models.ExamProgress{
 		IDAccount:    uint(id_account),
 		IDEvent:      uint(id_event),
 		IDProblemSet: uint(id_problem_set),
 		CreatedAt:    time.Now(),
 		DueAt:        due,
+		Answers:      ans,
 	}
 	createProgress = db.Create(&e)
 	return &e, createProgress
@@ -110,8 +73,8 @@ func GetResult(id_event int, id_account int, id_problem_set int) (res *models.Re
 	return &e, result
 }
 
-// func CreateResult(id_event int, id_account int, id_problem_set int, id_progress int) (res *models.Result, result *gorm.DB) {
-// 	var e = &models.Result{}
-// 	result = db.Create(&e)
-// 	return &e, result
-// }
+func CreateResult(id_event int, id_account int, id_problem_set int, id_progress int, data *models.Result) (res *models.Result, result *gorm.DB) {
+	var e = data
+	result = db.Create(e)
+	return e, result
+}
