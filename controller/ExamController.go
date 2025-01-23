@@ -10,15 +10,16 @@ import (
 )
 
 func ExamController(c *gin.Context) {
-
 	var req models.ExamRequest
 	c.ShouldBind(&req)
-	ID_User, _, err_verif := middleware.AuthUser(c)
-	IDEvent := req.IDEvent
-	IDProblemSet := req.IDProblemSet
-	data, status, err := services.ExamService(IDEvent, ID_User, IDProblemSet)
-	if err != nil && status != "no-record" && err_verif != nil {
-		err = errors.Join(err, err_verif)
+
+	var account models.AccountData
+	cParam, _ := c.Get("accountData")
+	account = cParam.(models.AccountData)
+
+	data, status, err := services.ExamService(req.IdEvent, account.IdUser, req.IdProblemSet)
+	err = errors.Join(err, account.ErrVerif)
+	if err != nil && status != "no-record" {
 		panic(err)
 	}
 	if status == "ok" {

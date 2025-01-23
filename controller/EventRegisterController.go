@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/quzuu-be/middleware"
@@ -11,21 +10,16 @@ import (
 )
 
 func EventRegisterController(c *gin.Context) {
-	var Req models.RegisterEventRequest
-	c.ShouldBind(&Req)
-	ID_User, statusAuth, err_verif := middleware.AuthUser(c)
-	// fmt.Println(statusAuth)
-	if statusAuth == "invalid-token" || statusAuth == "no-token" {
-		status := "Unauthorized"
-		msg := "Make sure that you've been Logged in before / you're not Authorized to access this endpoint"
-		middleware.SendJSON401(c, &status, &msg)
-		return
-	}
-	id_event := Req.IDEvent
-	event_code := Req.EventCode
-	data, status, err := services.EventRegisterService(id_event, ID_User, event_code)
-	err = errors.Join(err, err_verif)
-	fmt.Println(status)
+	var req models.RegisterEventRequest
+	c.ShouldBind(&req)
+
+	var account models.AccountData
+	cParam, _ := c.Get("accountData")
+	account = cParam.(models.AccountData)
+
+	data, status, err := services.EventRegisterService(req.IdEvent, account.IdUser, req.EventCode)
+	err = errors.Join(err, account.ErrVerif)
+	// fmt.Println(status)
 	if err != nil && status != "invalid-event-code" {
 		panic(err)
 	}

@@ -13,10 +13,12 @@ func QuestionsController(c *gin.Context) {
 
 	var req models.EventDetailRequest
 	c.ShouldBind(&req)
-	ID_User, _, err_verif := middleware.AuthUser(c)
-	data, status, err := services.ProblemSetService(req.IDEvent, ID_User)
-	if err != nil && status != "no-record" && err_verif != nil {
-		err = errors.Join(err, err_verif)
+	var account models.AccountData
+	cParam, _ := c.Get("accountData")
+	account = cParam.(models.AccountData)
+	data, status, err := services.ProblemSetService(req.IdEvent, account.IdUser)
+	if err != nil && status != "no-record" && account.ErrVerif != nil {
+		err = errors.Join(err, account.ErrVerif)
 		panic(err)
 	}
 	if status == "ok" {

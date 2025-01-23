@@ -12,10 +12,14 @@ import (
 func EventListController(c *gin.Context) {
 	var req models.EventListRequest
 	c.ShouldBind(&req)
-	ID_User, _, err_verif := middleware.AuthUser(c)
-	data, status, err := services.EventListService(&req, ID_User)
-	if err != nil && status != "no-record" && err_verif != nil {
-		err = errors.Join(err, err_verif)
+
+	var account models.AccountData
+	cParam, _ := c.Get("accountData")
+	account = cParam.(models.AccountData)
+
+	data, status, err := services.EventListService(&req, account.IdUser)
+	if err != nil && status != "no-record" && account.ErrVerif != nil {
+		err = errors.Join(err, account.ErrVerif)
 		panic(err)
 	}
 	if status == "ok" {
@@ -24,7 +28,7 @@ func EventListController(c *gin.Context) {
 		req.PerPage = 20
 		req.PageNumber = 1
 		req.Filter = ""
-		data, status, err = services.EventListService(&req, ID_User)
+		data, status, err = services.EventListService(&req, account.IdUser)
 		if status == "ok" && err == nil {
 			middleware.SendJSON200(c, data)
 		} else {

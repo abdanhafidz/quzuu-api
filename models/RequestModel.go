@@ -1,47 +1,47 @@
 package models
 
 type LoginRequest struct {
-	Username string `form:"username"`
-	Password string `form:"password"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type RegisterRequest struct {
-	Name     string `form:"name"`
-	Email    string `form:"email"`
-	Phone    int    `form:"phone"`
-	Username string `form:"username"`
-	Password string `form:"password"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Phone    int    `json:"phone"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type EventListRequest struct {
-	PerPage    int    `form:"per_page"`
-	PageNumber int    `form:"page_number"`
-	Filter     string `form:"filter"`
+	PerPage    int    `json:"per_page"`
+	PageNumber int    `json:"page_number"`
+	Filter     string `json:"filter"`
 }
 
 type EventDetailRequest struct {
-	IDEvent int `form:"id_event"`
+	IdEvent int `json:"id_event"`
 }
 
 type ProblemSetRequest struct {
-	IDEvent int `form:"id_event"`
+	IdEvent int `json:"id_event"`
 }
 
 type ExamRequest struct {
-	IDEvent      int `form:"id_event"`
-	IDProblemSet int `form:"id_problem_set"`
+	IdEvent      int `json:"id_event"`
+	IdProblemSet int `json:"id_problem_set"`
 }
 
 type RegisterEventRequest struct {
-	IDEvent   int    `form:"id_event"`
-	EventCode string `form:"event_code"`
+	IdEvent   int    `json:"id_event"`
+	EventCode string `json:"event_code"`
 }
 
 type QuestionRequest struct {
-	IDProblemSet int `form:"id_problem_set"`
+	IdProblemSet int `json:"id_problem_set"`
 }
 
 type SubmitRequest struct {
-	IDEvent      int `form:"id_event"`
-	IDProblemSet int `form:"id_problem_set"`
+	IdEvent      int `json:"id_event"`
+	IdProblemSet int `json:"id_problem_set"`
 }

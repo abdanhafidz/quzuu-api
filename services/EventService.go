@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/quzuu-be/middleware"
@@ -66,9 +67,10 @@ func EventDetailService(id_event int, id_account int) (DetailResponse models.Eve
 		}, statusAssign, err
 	}
 
-} 
+}
 func GetEventStatus(id_event int, id_account int) (res string, status string, err error) {
 	eventData, statusDetail, err := EventDetailService(id_event, id_account)
+	fmt.Println("Status Detail :", statusDetail)
 	if statusDetail == "ok" {
 		startTime := eventData.Data.StartEvent
 		endTime := eventData.Data.EndEvent

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/quzuu-be/middleware"
@@ -20,11 +21,9 @@ func CheckUserExam(id_event int, id_account int, id_problem_set int) (data bool,
 	var hr int
 	var min int
 	var sec int
-	go func() {
-		hr = problemSet.Duration.Hour()
-		min = problemSet.Duration.Minute()
-		sec = problemSet.Duration.Second()
-	}()
+	hr = problemSet.Duration.Hour()
+	min = problemSet.Duration.Minute()
+	sec = problemSet.Duration.Second()
 	dueTime := CurrentTime.Add(time.Hour*time.Duration(hr) + time.Minute*time.Duration(min) + time.Second*time.Duration(sec))
 	if CurrentTime.After(dueTime) {
 		return false, "exam-finished", errResult
@@ -46,11 +45,14 @@ func CheckStatusExam(id_event int, id_account int, id_problem_set int) (data boo
 			return false, "unregistered", errEventStatus
 		} else if statusRole == "registered" && eventStatus == "onGoing" {
 			return true, "ready", errEventStatus
+			// Keregister, OnGoing, waktu dia abis
 		} else if statusRole == "registered" && eventStatus == "finish" {
 			return false, "Time-Out", err
+		} else {
+			return false, eventStatus, err
 		}
 	}
-	return false, "error", errRole
+
 }
 func ExamService(id_event int, id_account int, id_problem_set int) (data interface{}, status string, err error) {
 	CekStatus, ExamStatus, CekExamErr := CheckStatusExam(id_event, id_account, id_problem_set)
@@ -69,12 +71,13 @@ func ExamService(id_event int, id_account int, id_problem_set int) (data interfa
 			var hr int
 			var min int
 			var sec int
-			go func() {
-				hr = problemSet.Duration.Hour()
-				min = problemSet.Duration.Minute()
-				sec = problemSet.Duration.Second()
-			}()
+			hr = problemSet.Duration.Hour()
+			min = problemSet.Duration.Minute()
+			sec = problemSet.Duration.Second()
 			dueTime := currentTime.Add(time.Hour*time.Duration(hr) + time.Minute*time.Duration(min) + time.Second*time.Duration(sec))
+			fmt.Println("dueTime", dueTime)
+			// var convertedDueTime time.Time
+			// convertedDueTime = dueTime.(time.Time)
 			progressCreated, progressRowCreated := repositories.CreateProgress(id_event, id_account, id_problem_set, dueTime, ansArray)
 			statusProgressCreated, errProgressCreated := middleware.RecordCheck(progressRowCreated)
 			err = errors.Join(err, errProgressCreated)
@@ -103,6 +106,7 @@ func ExamService(id_event int, id_account int, id_problem_set int) (data interfa
 		data = false
 		status = ExamStatus
 		err = CekExamErr
+		fmt.Println(status)
 		return data, status, err
 	}
 	return data, status, err
@@ -115,19 +119,19 @@ type result struct {
 	Score     float64
 }
 
-func AddCorrect(Correct *int) {
+func addCorrect(Correct *int) {
 	*Correct++
 }
 
-func AddIncorrect(InCorrect *int) {
+func addIncorrect(InCorrect *int) {
 	*InCorrect++
 }
 
-func AddEmpty(Empty *int) {
+func addEmpty(Empty *int) {
 	*Empty++
 }
 
-func AddScore(Score *float64, weight float64) {
+func addScore(Score *float64, weight float64) {
 	*Score += weight
 }
 
@@ -139,14 +143,14 @@ type weight struct {
 
 func (result *result) CheckAnswer(answer string, answer_key string, q_type string, weight weight) {
 	if answer == answer_key && q_type != "essay" {
-		AddCorrect(&result.Correct)
-		AddScore(&result.Score, weight.c_weight)
+		addCorrect(&result.Correct)
+		addScore(&result.Score, weight.c_weight)
 	} else if answer == "0" || answer == "null" {
-		AddEmpty(&result.Empty)
-		AddScore(&result.Score, weight.e_weight)
+		addEmpty(&result.Empty)
+		addScore(&result.Score, weight.e_weight)
 	} else if answer != answer_key && q_type != "essay" {
-		AddIncorrect(&result.Incorrect)
-		AddScore(&result.Score, weight.i_weight)
+		addIncorrect(&result.Incorrect)
+		addScore(&result.Score, weight.i_weight)
 	}
 }
 func SubmitExamService(id_event int, id_account int, id_problem_set int) (data interface{}, status string, err error) {
@@ -183,5 +187,7 @@ func SubmitExamService(id_event int, id_account int, id_problem_set int) (data i
 		err = UserExamErr
 		return data, status, err
 	}
+	// Waktu Mulai , Due Time
+	// Due Time - Waktu Mulai
 	return CekStatus, ExamStatus, CekExamErr
 }

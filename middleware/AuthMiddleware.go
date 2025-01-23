@@ -4,7 +4,6 @@ package middleware
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -76,18 +75,29 @@ func VerifyToken(bearer_token string) (int, string, error) {
 	return claims.IDUser, "valid", err
 }
 
-func AuthUser(c *gin.Context) (ID_User int, verify_status string, err_verif error) {
+func AuthUser(c *gin.Context) {
+	var currAccData models.AccountData
 	if c.Request.Header["Auth-Bearer-Token"] != nil {
 		token := c.Request.Header["Auth-Bearer-Token"]
-		ID_User, verify_status, err_verif = VerifyToken(token[0])
-		fmt.Println("Verify Status :", verify_status)
-		if verify_status == "invalid-token" || verify_status == "expired" {
-			ID_User = 0
+		currAccData.IdUser, currAccData.VerifyStatus, currAccData.ErrVerif = VerifyToken(token[0])
+		// fmt.Println("Verify Status :", currAccData.verifyStatus)
+		if currAccData.VerifyStatus == "invalid-token" || currAccData.VerifyStatus == "expired" {
+			currAccData.IdUser = 0
+			message := "Your session had been expired, Please re-Login!"
+			SendJSON401(c, &currAccData.VerifyStatus, &message)
+			c.Abort()
+			return
 		}
 	} else {
-		ID_User = 0
-		verify_status = "invalid-token"
-		err_verif = nil
+		currAccData.IdUser = 0
+		currAccData.VerifyStatus = "no-token"
+		currAccData.ErrVerif = nil
+		message := "You have to Login First!"
+		SendJSON401(c, &currAccData.VerifyStatus, &message)
+		c.Abort()
+		return
 	}
-	return ID_User, verify_status, err_verif
+
+	c.Set("accountData", currAccData)
+	c.Next()
 }
