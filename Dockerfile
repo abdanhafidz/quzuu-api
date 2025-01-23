@@ -1,4 +1,4 @@
-# Gunakan image dasar Golang
+# Gunakan image dasar Golang versi 1.21.6
 FROM golang:1.21.6
 
 # Set working directory
@@ -12,6 +12,9 @@ RUN go mod download
 
 # Copy seluruh kode
 COPY . .
+
+# Copy file .env (akan dibuat di workflow)
+COPY .env.example .env
 
 # Build aplikasi
 RUN go build -o main .
