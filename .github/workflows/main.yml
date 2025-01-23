@@ -3,7 +3,7 @@ name: Deploy to Huggingface
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   build-and-deploy:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t my-golang-api:latest .
+          docker build -t quzuu-api-dev:latest .
 
       # Push to Huggingface
       - name: Push to Huggingface
@@ -32,5 +32,5 @@ jobs:
         run: |
           echo "Deploying to Huggingface..."
           docker login -u username -p $HF_TOKEN docker.pkg.github.com
-          docker tag my-golang-api:latest huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
+          docker tag quzuu-api-dev:latest huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
           docker push huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
