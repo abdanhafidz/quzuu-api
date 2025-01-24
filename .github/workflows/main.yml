@@ -32,7 +32,7 @@ jobs:
       # Copy Files to Huggingface Repository
       - name: Copy Files
         run: |
-          cp -r ./* space/
+          # cp -r ./* space/
           # cp -r ./.env space/ # Optional, jika perlu menyertakan file .env
           cd space
           git add .
