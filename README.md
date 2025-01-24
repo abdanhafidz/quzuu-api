@@ -1,16 +1,8 @@
-{
-data :
-status : (succeed -> "ok", else -> "error")
-error-status: 
-message:
-}
-
-{
-    1:A,
-    2:B
-}
-
-{
-    1:A,
-    2:B
-}
+---
+title: Quzuu Api Dev
+emoji: 🐠
+colorFrom: indigo
+colorTo: gray
+sdk: docker
+pinned: false
+---

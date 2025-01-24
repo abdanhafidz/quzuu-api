@@ -14,8 +14,8 @@ RUN go mod download
 COPY . .
 
 # Buat file .env dengan variabel environment yang dibutuhkan
-RUN echo "DB_HOST=db.chbzgcdzhplyetsizwui.supabase.co" >> .env && \
-    echo "DB_USER=postgres" >> .env && \
+RUN echo "DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com" >> .env && \
+    echo "DB_USER=postgres.chbzgcdzhplyetsizwui" >> .env && \
     echo "DB_PASSWORD=QuzuuAPIDEV2025" >> .env && \
     echo "DB_PORT=5432" >> .env && \
     echo "DB_NAME=postgres" >> .env && \
