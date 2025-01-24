@@ -47,7 +47,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          docker login -u $HF_TOKEN -p ${{ secrets.HF_TOKEN }} huggingface.co
+          echo $HF_TOKEN | docker login --username $HF_TOKEN --password-stdin huggingface.co
           docker push huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
 
       # Verify Deployment
