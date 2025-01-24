@@ -25,7 +25,16 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev space
+          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev space
+
+      # Update Git Remote URL and Pull Latest Changes
+      - name: Update Remote and Pull Changes
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd space
+          git remote set-url origin https://lifedebugger:$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev
+          git pull origin main || echo "No changes to pull"
 
       # Copy Files to Huggingface Space
       - name: Copy Files to Space
