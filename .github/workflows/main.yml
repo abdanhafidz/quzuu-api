@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build-and-deploy:
+  deploy-to-huggingface:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,31 +14,35 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      # Buat file .env dari .env.example dan isi nilai environment
-      - name: Create .env file
+      # Setup Git
+      - name: Setup Git for Huggingface
         run: |
-          cp .env.example .env
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_USER=postgres" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_PORT=5432" >> .env
-          echo "DB_NAME=postgres" >> .env
-          echo "SALT=@quzuuAp12025" >> .env
+          git config --global user.email "abdan.hafidz@gmail.com"
+          git config --global user.name "abdanhafidz"
 
-      # Build Docker Image
-      - name: Build Docker Image
-        run: |
-          docker build -t quzuu-api-dev:latest .
-
-      # Tag Docker Image for Huggingface
-      - name: Tag Docker Image for Huggingface
-        run: |
-          docker tag quzuu-api-dev:latest huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
-
-      # Push Docker Image to Huggingface
-      - name: Push Docker Image to Huggingface
+      # Clone Huggingface Space Repository
+      - name: Clone Huggingface Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo $HF_TOKEN | docker login huggingface.co -u $HF_TOKEN --password-stdin
-          docker push huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
+          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev space
+          cd space
+          git remote set-url origin https://huggingface.co/spaces/lifedebugger/quzuu-api-dev
+
+      # Copy Files to Huggingface Repository
+      - name: Copy Files
+        run: |
+          cp -r ./* space/
+          cp -r ./.env space/ # Optional, jika perlu menyertakan file .env
+          cd space
+          git add .
+          git status # Untuk memastikan file ditambahkan
+
+      # Commit and Push to Huggingface
+      - name: Commit and Push Changes
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          cd space
+          git commit -m "Update application files"
+          git push https://huggingface.co/spaces/lifedebugger/quzuu-api-dev
