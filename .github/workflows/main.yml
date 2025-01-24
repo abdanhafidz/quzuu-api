@@ -18,14 +18,14 @@ jobs:
       - name: Create .env file
         run: |
           cp .env.example .env
-          echo "DB_HOST=localhost" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
           echo "DB_USER=postgres" >> .env
-          echo "DB_PASSWORD=12345" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
           echo "DB_PORT=5432" >> .env
-          echo "DB_NAME=quzuu_db_dev" >> .env
+          echo "DB_NAME=postgres" >> .env
           echo "SALT=@quzuuAp12025" >> .env
 
-      # Setup Docker
+      # Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v2
         with:
@@ -37,12 +37,20 @@ jobs:
         run: |
           docker build -t quzuu-api-dev:latest .
 
-      # Push to Huggingface
-      - name: Push to Huggingface
+      # Tag the Docker Image for Huggingface
+      - name: Tag Docker Image for Huggingface
+        run: |
+          docker tag quzuu-api-dev:latest huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
+
+      # Push Docker Image to Huggingface
+      - name: Push Docker Image to Huggingface
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          echo "Deploying to Huggingface..."
-          docker login -u username -p $HF_TOKEN docker.pkg.github.com
-          docker tag quzuu-api-dev:latest huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
+          docker login -u $HF_TOKEN -p $HF_TOKEN huggingface.co
           docker push huggingface.co/spaces/lifedebugger/quzuu-api-dev:latest
+
+      # Verify Deployment
+      - name: Verify Deployment
+        run: |
+          echo "Deployment completed. Your Huggingface Space is now updated."
