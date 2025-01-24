@@ -25,7 +25,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api space
+          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev space
 
       # Copy Files to Huggingface Space
       - name: Copy Files to Space
@@ -40,4 +40,4 @@ jobs:
           cd space
           git add .
           git commit -m "Deploy files from GitHub repository"
-          git push https://huggingface.co/spaces/lifedebugger/quzuu-api
+          git push https://huggingface.co/spaces/lifedebugger/quzuu-api-dev
