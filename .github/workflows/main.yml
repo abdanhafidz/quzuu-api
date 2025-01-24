@@ -33,7 +33,7 @@ jobs:
       - name: Copy Files
         run: |
           cp -r ./* space/
-          cp -r ./.env space/ # Optional, jika perlu menyertakan file .env
+          # cp -r ./.env space/ # Optional, jika perlu menyertakan file .env
           cd space
           git add .
           git status # Untuk memastikan file ditambahkan
