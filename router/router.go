@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/quzuu-be/config"
 	"github.com/quzuu-be/controller"
 	"github.com/quzuu-be/middleware"
 )
@@ -20,5 +21,5 @@ func StartService() {
 		routerGroup.POST("/register", controller.RegisterController)
 		routerGroup.GET("/", controller.HomeController)
 	}
-	router.Run()
+	router.Run(config.TCP_ADDRESS)
 }

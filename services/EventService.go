@@ -11,6 +11,12 @@ import (
 	"gorm.io/gorm"
 )
 
+func CheckEventAssign(id_account int, id_event int) (res interface{}, status string, err error) {
+	data, eventAssign := repositories.GetEventAssign(id_account, id_event)
+	status, err = middleware.RecordCheck(eventAssign)
+	return data, status, err
+}
+
 func EventRoleCheck(id_event int, id_account int) (string, error) {
 	eventDetail, rowsDetail := repositories.GetEventDetail(id_event)
 	_, errDetail := middleware.RecordCheck(rowsDetail)
@@ -40,11 +46,7 @@ func EventListService(req *models.EventListRequest, id_account int) (data interf
 	status, err = middleware.RecordCheck(eventList)
 	return data, status, err
 }
-func CheckEventAssign(id_account int, id_event int) (res interface{}, status string, err error) {
-	data, eventAssign := repositories.GetEventAssign(id_account, id_event)
-	status, err = middleware.RecordCheck(eventAssign)
-	return data, status, err
-}
+
 func EventDetailService(id_event int, id_account int) (DetailResponse models.EventResponse, status string, err error) {
 	DataDetail, eventDetail := repositories.GetEventDetail(id_event)
 	statusDetail, errDetail := middleware.RecordCheck(eventDetail)

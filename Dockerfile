@@ -19,6 +19,8 @@ RUN echo "DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com" >> .env && \
     echo "DB_PASSWORD=QuzuuAPIDEV2025" >> .env && \
     echo "DB_PORT=5432" >> .env && \
     echo "DB_NAME=postgres" >> .env && \
+    echo "HOST_ADDRESS = 0.0.0.0" >> .env && \
+    echo "HOST_PORT = 7860" >> .env && \
     echo "SALT=@quzuuAp12025" >> .env
 
 # Build aplikasi
