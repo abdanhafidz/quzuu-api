@@ -11,7 +11,7 @@ jobs:
 
     steps:
       # Checkout repository
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       # Setup Git
@@ -25,24 +25,19 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev space
-          cd space
-          git remote set-url origin https://huggingface.co/spaces/lifedebugger/quzuu-api-dev
+          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api space
 
-      # Copy Files to Huggingface Repository
-      - name: Copy Files
+      # Copy Files to Huggingface Space
+      - name: Copy Files to Space
         run: |
-          # cp -r ./* space/
-          # cp -r ./.env space/ # Optional, jika perlu menyertakan file .env
-          cd space
-          git add .
-          git status # Untuk memastikan file ditambahkan
+          rsync -av --exclude='.git' ./ space/
 
-      # Commit and Push to Huggingface
-      - name: Commit and Push Changes
+      # Commit and Push to Huggingface Space
+      - name: Commit and Push to Huggingface
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           cd space
-          git commit -m "Update application files"
-          git push https://huggingface.co/spaces/lifedebugger/quzuu-api-dev
+          git add .
+          git commit -m "Deploy files from GitHub repository"
+          git push https://huggingface.co/spaces/lifedebugger/quzuu-api
