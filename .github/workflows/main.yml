@@ -25,9 +25,7 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git clone https://huggingface.co/spaces/lifedebugger/quzuu-api-dev space
-          cd space
-          git remote set-url origin https://$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev
+          git clone https://$HF_TOKEN@huggingface.co/spaces/lifedebugger/quzuu-api-dev space
 
       # Copy Files to Huggingface Space
       - name: Copy Files to Space
@@ -41,5 +39,5 @@ jobs:
         run: |
           cd space
           git add .
-          git commit -m "Deploy files from GitHub repository"
-          git push origin main
+          git commit -m "Deploy files from GitHub repository" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
