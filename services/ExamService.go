@@ -10,40 +10,58 @@ import (
 	"github.com/quzuu-be/repositories"
 )
 
+type ExamTimer struct {
+	DueTime  time.Time
+	Duration time.Duration
+}
+
+func GetExamTimer(id_problem_set int) ExamTimer {
+	problemSet, _ := repositories.GetProblemSetDetail(id_problem_set)
+	CurrentTime := time.Now()
+	dueTime := CurrentTime.Add(problemSet.Duration)
+
+	return ExamTimer{
+		DueTime:  dueTime,
+		Duration: problemSet.Duration,
+	}
+}
+
 func CheckUserExam(id_event int, id_account int, id_problem_set int) (data bool, status string, err error) {
 	_, dbResult := repositories.GetResult(id_event, id_account, id_problem_set)
 	countResult, errResult := middleware.RecordCheck(dbResult)
 	if countResult != "no-record" {
 		return false, "exam-submitted", errResult
 	}
-	problemSet, _ := repositories.GetProblemSetDetail(id_problem_set)
 	CurrentTime := time.Now()
-	var hr int
-	var min int
-	var sec int
-	hr = problemSet.Duration.Hour()
-	min = problemSet.Duration.Minute()
-	sec = problemSet.Duration.Second()
-	dueTime := CurrentTime.Add(time.Hour*time.Duration(hr) + time.Minute*time.Duration(min) + time.Second*time.Duration(sec))
-	if CurrentTime.After(dueTime) {
+	progressCreated, progressRow := repositories.GetProgress(id_event, id_account, id_problem_set)
+	statusProgress, _ := middleware.RecordCheck(progressRow)
+	var examTimer ExamTimer
+	if statusProgress == "no-record" {
+		examTimer = GetExamTimer(id_problem_set)
+	} else {
+		examTimer.DueTime = progressCreated.DueAt
+	}
+	if CurrentTime.After(examTimer.DueTime) {
 		return false, "exam-finished", errResult
 	}
 	return true, "ready", nil
 }
 func CheckStatusExam(id_event int, id_account int, id_problem_set int) (data bool, status string, err error) {
 	statusRole, errRole := EventRoleCheck(id_event, id_account)
+	fmt.Println("status role", statusRole)
 	if statusRole == "unauthorized" {
 		return false, "unauthorized", errRole
 	} else {
-		_, eventStatus, errEventStatus := GetEventStatus(id_event, id_account)
+		eventStatus, _, errEventStatus := GetEventStatus(id_event, id_account)
+		fmt.Println("Event status", eventStatus)
 		err = errors.Join(errRole, errEventStatus)
 		if (statusRole == "unregistered" || statusRole == "registered") && eventStatus == "notStart" {
 			// Sudah daftar atau belum daftar tapi eventBelum Mulai ya gaboleh bikin progress / lihat soal
 			return false, "notStart", errEventStatus
-		} else if statusRole == "unregistered" && eventStatus == "onGoing" {
+		} else if statusRole == "unregistered" && eventStatus == "OnGoing" {
 			// Belum daftar ya suruh daftar dulu
 			return false, "unregistered", errEventStatus
-		} else if statusRole == "registered" && eventStatus == "onGoing" {
+		} else if statusRole == "registered" && eventStatus == "OnGoing" {
 			return true, "ready", errEventStatus
 			// Keregister, OnGoing, waktu dia abis
 		} else if statusRole == "registered" && eventStatus == "finish" {
@@ -57,6 +75,8 @@ func CheckStatusExam(id_event int, id_account int, id_problem_set int) (data boo
 func ExamService(id_event int, id_account int, id_problem_set int) (data interface{}, status string, err error) {
 	CekStatus, ExamStatus, CekExamErr := CheckStatusExam(id_event, id_account, id_problem_set)
 	CekUserExam, UserExamStatus, UserExamErr := CheckUserExam(id_event, id_account, id_problem_set)
+	fmt.Println("Exam Status", ExamStatus, "User Status", UserExamStatus)
+	fmt.Println("Boolean Exam Status", CekStatus, "Boolean UserExam Status", CekUserExam)
 	if CekStatus && CekUserExam {
 		// Udah daftar dan event OnGoing
 		progress, progressRow := repositories.GetProgress(id_event, id_account, id_problem_set)
@@ -64,32 +84,39 @@ func ExamService(id_event int, id_account int, id_problem_set int) (data interfa
 		status = statusProgress
 		QuestionsData, _ := repositories.GetQuestions(id_problem_set)
 		ansArray := repositories.CastAnswerFrame(id_problem_set)
+		fmt.Println(statusProgress, progressRow.RowsAffected)
 		if status == "no-record" {
 			// Kalau belum mulai mengerjakan / first assignment
-			problemSet, _ := repositories.GetProblemSetDetail(id_problem_set)
-			currentTime := time.Now()
-			var hr int
-			var min int
-			var sec int
-			hr = problemSet.Duration.Hour()
-			min = problemSet.Duration.Minute()
-			sec = problemSet.Duration.Second()
-			dueTime := currentTime.Add(time.Hour*time.Duration(hr) + time.Minute*time.Duration(min) + time.Second*time.Duration(sec))
-			fmt.Println("dueTime", dueTime)
+			examTimer := GetExamTimer(id_problem_set)
+
 			// var convertedDueTime time.Time
 			// convertedDueTime = dueTime.(time.Time)
-			progressCreated, progressRowCreated := repositories.CreateProgress(id_event, id_account, id_problem_set, dueTime, ansArray)
+			_, progressRowCreated := repositories.CreateProgress(id_event, id_account, id_problem_set, examTimer.DueTime, ansArray)
+			progressCreated, _ := repositories.GetProgress(id_event, id_account, id_problem_set)
 			statusProgressCreated, errProgressCreated := middleware.RecordCheck(progressRowCreated)
 			err = errors.Join(err, errProgressCreated)
 			if statusProgressCreated == "ok" {
-				data = models.ExamDataResponse{Progress: progressCreated, Questions: &QuestionsData, RemTime: &models.Duration{Hour: hr, Min: min, Sec: sec}}
+				data = models.ExamDataResponse{Progress: progressCreated, Questions: &QuestionsData,
+					RemTime: &models.Duration{
+						Hour: int(examTimer.Duration.Hours()),
+						Min:  int(examTimer.Duration.Minutes()),
+						Sec:  int(examTimer.Duration.Seconds())}}
 				return data, statusProgressCreated, err
 			}
 		} else {
 			// kalau udah mulai ngerjain sebelumnya, lanjutin dari waktu sebelumnya
 			currentTime := time.Now()
 			hr, min, sec := middleware.DiffTime(currentTime, progress.DueAt)
-			data = models.ExamDataResponse{Progress: progress, Questions: &QuestionsData, RemTime: &models.Duration{Hour: hr, Min: min, Sec: sec}}
+			if hr > 0 {
+				hr = 0
+			}
+			if min > 0 {
+				min = 0
+			}
+			if sec > 0 {
+				sec = 0
+			}
+			data = models.ExamDataResponse{Progress: progress, Questions: &QuestionsData, RemTime: &models.Duration{Hour: hr * -1, Min: min * -1, Sec: sec * -1}}
 			return data, "ok", err
 		}
 	} else if UserExamStatus == "exam-submitted" {
@@ -106,7 +133,6 @@ func ExamService(id_event int, id_account int, id_problem_set int) (data interfa
 		data = false
 		status = ExamStatus
 		err = CekExamErr
-		fmt.Println(status)
 		return data, status, err
 	}
 	return data, status, err
@@ -161,16 +187,18 @@ func SubmitExamService(id_event int, id_account int, id_problem_set int) (data i
 		Questions, _ := repositories.GetQuestionsReview(id_problem_set)
 		userProgress, _ := repositories.GetProgress(id_event, id_account, id_problem_set)
 		i := 0
-		for _, UserAnswer := range userProgress.Answers {
+		userAnswers, _ := userProgress.Answers.Value()
+		for _, UserAnswer := range userAnswers.([]any) {
 			j := 0
-			ans_len := len(UserAnswer)
-			for _, ParseAnswer := range UserAnswer {
+			convertedUserAnswer := UserAnswer.([]any)
+			ans_len := len(convertedUserAnswer)
+			for _, ParseAnswer := range convertedUserAnswer {
 				var Weight weight
 				Weight.c_weight = float64(Questions[i].CorrMark) / float64(ans_len)
 				Weight.i_weight = float64(Questions[i].IncorrMark) / float64(ans_len)
 				Weight.e_weight = float64(Questions[i].NullMark) / float64(ans_len)
 				var res = &Result
-				res.CheckAnswer(ParseAnswer, Questions[i].AnsKey[j], Questions[i].Type, Weight)
+				res.CheckAnswer(ParseAnswer.(string), Questions[i].AnsKey[j], Questions[i].Type, Weight)
 				j++
 			}
 			i++

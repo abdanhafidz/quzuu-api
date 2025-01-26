@@ -33,6 +33,15 @@ func ExamController(c *gin.Context) {
 	} else if status == "unregistered" {
 		msg := "You haven't registered to this event yet!"
 		middleware.SendJSON401(c, &status, &msg)
+	} else if status == "exam-submitted" {
+		msg := "Your exam was submitted before, you aren't possibly to redoing the exam!"
+		middleware.SendJSON401(c, &status, &msg)
+	} else if status == "exam-finished" {
+		msg := "Time is up, the exam is submitted!"
+		middleware.SendJSON401(c, &status, &msg)
+	} else if status == "Time-Out" {
+		msg := "Event is finished!"
+		middleware.SendJSON401(c, &status, &msg)
 	} else {
 		msg := "There is an internal server error while sending request!"
 		status = "InternalError"

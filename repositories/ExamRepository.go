@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -8,9 +9,9 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetProgress(id_event int, id_account int, id_problem_set int) (res *models.ExamProgress, progress *gorm.DB) {
-	var e models.ExamProgress
-	progress = db.Where("id_account = ? AND id_problem_set = ? AND id_event = ?", id_account, id_problem_set, id_event).Find(&e)
+func GetProgress(id_event int, id_account int, id_problem_set int) (res *models.ExamProgress_Result, progress *gorm.DB) {
+	var e models.ExamProgress_Result
+	progress = db.Table("exam_progress").Where("id_account = ? AND id_problem_set = ? AND id_event = ?", id_account, id_problem_set, id_event).Take(&e)
 	return &e, progress
 }
 
@@ -18,24 +19,34 @@ type QuestionsOnGoingExam struct {
 	IDQuestion   uint
 	Type         string //MultChoices, ShortAns, Essay, IntPuzzle, IntType
 	Question     string
-	Options      [][]string
+	Options      []string
 	IDProblemSet uint
 }
 
-func CastAnswerFrame(id_problem_set int) (ans [][]string) {
-	type Lquestions struct {
-		cnt_array int
-	}
-	var e []Lquestions
+func CastAnswerFrame(id_problem_set int) string {
+
+	var e []int64
 	db.Raw("SELECT array_length(ans_key, 1) as cnt_array FROM questions WHERE id_problem_set = ? ORDER BY id_question", id_problem_set).Find(&e)
 	i := 0
+	var ansString string
+	var ansArray string
 	for _, t := range e {
-		ansString := strings.Repeat("0,", t.cnt_array-1) + "0"
-		ansArray := strings.Split(ansString, ",")
-		ans[i] = ansArray
+		ansString = "[" + strings.Repeat("0,", int(t)-1) + "0" + "]"
+		if i == 0 {
+			ansArray += "["
+		}
+		if i < len(e)-1 {
+			ansArray += ansString + ","
+		}
+
+		if i == len(e)-1 {
+			ansArray += ansString
+			ansArray += "]"
+		}
 		i++
 	}
-	return ans
+	fmt.Println(ansArray)
+	return ansArray
 }
 
 func GetQuestions(id_problem_set int) (res []QuestionsOnGoingExam, MCQuestions *gorm.DB) {
@@ -54,7 +65,7 @@ func GetQuestionsReview(id_problem_set int) (res []models.Questions, MCQuestions
 
 // }
 
-func CreateProgress(id_event int, id_account int, id_problem_set int, due time.Time, ans [][]string) (res interface{}, createProgress *gorm.DB) {
+func CreateProgress(id_event int, id_account int, id_problem_set int, due time.Time, ans string) (res interface{}, createProgress *gorm.DB) {
 	e := &models.ExamProgress{
 		IDAccount:    uint(id_account),
 		IDEvent:      uint(id_event),

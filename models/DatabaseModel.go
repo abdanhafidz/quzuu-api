@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 type ProblemSetAssign struct {
@@ -47,7 +49,7 @@ type Questions struct {
 type ProblemSet struct {
 	IDProblemSet uint `gorm:"primaryKey"`
 	Title        string
-	Duration     time.Time
+	Duration     time.Duration
 	Randomize    uint
 	MC_Count     uint
 	SA_Count     uint
@@ -104,8 +106,19 @@ type ExamProgress struct {
 	IDProblemSet   uint
 	CreatedAt      time.Time
 	DueAt          time.Time
-	QuestionsOrder []string   `gorm:"type:text[]"`
-	Answers        [][]string `gorm:"type:text[][]"`
+	QuestionsOrder []string `gorm:"type:text[]"`
+	Answers        any      `gorm:"type:jsonb"`
+}
+type JSONB []interface{}
+type ExamProgress_Result struct {
+	IDProgress     uint `gorm:"primaryKey"`
+	IDAccount      uint
+	IDEvent        uint
+	IDProblemSet   uint
+	CreatedAt      time.Time
+	DueAt          time.Time
+	QuestionsOrder []string       `gorm:"type:text[]"`
+	Answers        postgres.Jsonb `gorm:"type:jsonb"`
 }
 
 // Gorm table name settings
