@@ -20,5 +20,5 @@ type ExamDataResponse struct {
 
 type EventResponse struct {
 	Data           *Events
-	RegisterStatus int
+	RegisterStatus int `json:"register_status"`
 }

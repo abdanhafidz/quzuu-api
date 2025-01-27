@@ -9,7 +9,7 @@ import (
 
 func RegisterController(c *gin.Context) {
 	var regReq models.RegisterRequest
-	c.ShouldBind(&regReq)
+	c.ShouldBindJSON(&regReq)
 	data, status, err := services.RegisterService(&regReq)
 	if err != nil && status != "duplicate" {
 		panic(err)

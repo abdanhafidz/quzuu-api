@@ -39,6 +39,7 @@ func ExamController(c *gin.Context) {
 	} else if status == "exam-finished" {
 		msg := "Time is up, the exam is submitted!"
 		middleware.SendJSON401(c, &status, &msg)
+		
 	} else if status == "Time-Out" {
 		msg := "Event is finished!"
 		middleware.SendJSON401(c, &status, &msg)
