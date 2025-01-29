@@ -12,7 +12,7 @@ import (
 func ProblemSetController(c *gin.Context) {
 
 	var req models.EventDetailRequest
-	c.ShouldBind(&req)
+	c.ShouldBindJSON(&req)
 
 	var account models.AccountData
 	cParam, _ := c.Get("accountData")
@@ -27,7 +27,7 @@ func ProblemSetController(c *gin.Context) {
 		middleware.SendJSON200(c, &data)
 	} else if status == "no-record" {
 		msg := "There is no Event Data with that event ID"
-		middleware.SendJSON500(c, &status, &msg)
+		middleware.SendJSON400(c, &status, &msg)
 	} else if status == "unauthorized" {
 		msg := "You aren't assigned to this problem set repository"
 		middleware.SendJSON401(c, &status, &msg)

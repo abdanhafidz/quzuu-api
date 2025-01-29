@@ -2,111 +2,136 @@ package services
 
 import (
 	"errors"
+	"reflect"
 	"time"
 
-	"github.com/quzuu-be/middleware"
+	"github.com/quzuu-be/lib"
 	"github.com/quzuu-be/models"
 	"github.com/quzuu-be/repositories"
-	"gorm.io/gorm"
 )
 
-func CheckEventAssign(id_account int, id_event int) (res interface{}, status string, err error) {
-	data, eventAssign := repositories.GetEventAssign(id_account, id_event)
-	status, err = middleware.RecordCheck(eventAssign)
-	return data, status, err
-}
-
-func EventRoleCheck(id_event int, id_account int) (string, error) {
-	eventDetail, rowsDetail := repositories.GetEventDetail(id_event)
-	_, errDetail := middleware.RecordCheck(rowsDetail)
-	dataAssign, statusAssign, errAssign := CheckEventAssign(id_account, id_event)
-	err := errors.Join(errDetail, errAssign)
-	// fmt.Println(eventDetail)
-	// fmt.Println(statusAssign)
-	if eventDetail.Public == "Y" {
-		if statusAssign == "no-record" {
-			return "unregistered", err
-		} else {
-			return "registered", err
-		}
-	} else {
-		if statusAssign != "no-record" && dataAssign != nil {
-			return "registered", err
-		} else {
-			return "unauthorized", err
-		}
+func CheckEventAssign(id_event int, id_account int) ServiceResult[models.EventAssign] {
+	repositories.EventAssignRepository.Wrapper = models.EventAssign{
+		IDAccount: uint(id_account),
+		IDEvent:   uint(id_event),
+	}
+	var eventAssign = repositories.EventAssignRepository.Find()
+	return ServiceResult[models.EventAssign]{
+		Result: eventAssign.Result,
+		Exception: lib.Exception{
+			DataNotFound: eventAssign.NoRecord,
+		},
+		Error: eventAssign.RowsError,
 	}
 }
-func EventListService(req *models.EventListRequest, id_account int) (data interface{}, status string, err error) {
+
+func EventRoleCheck(id_event int, id_account int) (res ServiceResult[bool]) {
+	repositories.EventRepository.Wrapper.IDEvent = uint(id_event)
+	eventDetail := repositories.EventRepository.Find()
+	eventAssign := CheckEventAssign(id_account, id_event)
+	res.Error = errors.Join(eventDetail.RowsError, eventAssign.Error)
+	if eventDetail.Result.Public == "Y" && eventAssign.Exception.DataNotFound {
+		res.Result = true
+		res.Exception.UserNotRegisteredToEvent = true
+	} else if eventDetail.Result.Public == "N" && eventAssign.Exception.DataNotFound {
+		res.Result = false
+		res.Exception.Unauthorized = true
+	} else if !eventAssign.Exception.DataNotFound && !reflect.ValueOf(eventAssign.Result).IsNil() {
+		res.Result = true
+	}
+	return res
+}
+func EventListService(req *models.EventListRequest, id_account int) ServiceResult[[]models.Events] {
 	offset := req.PerPage * (req.PageNumber - 1)
 	limit := req.PerPage
 	filter := "%" + req.Filter + "%"
-	data, eventList := repositories.GetEventList(offset, limit, filter, id_account)
-	status, err = middleware.RecordCheck(eventList)
-	return data, status, err
+	eventList := repositories.EventPaginateRepository.FindAllPaginate(offset, limit, filter, id_account)
+	return ServiceResult[[]models.Events]{
+		Result: eventList.Result,
+		Exception: lib.Exception{
+			DataNotFound: eventList.NoRecord,
+		},
+		Error: eventList.RowsError,
+	}
 }
 
-func EventDetailService(id_event int, id_account int) (DetailResponse models.EventResponse, status string, err error) {
-	DataDetail, eventDetail := repositories.GetEventDetail(id_event)
-	statusDetail, errDetail := middleware.RecordCheck(eventDetail)
-	DetailResponse.Data = DataDetail
-	statusAssign, errAssign := EventRoleCheck(id_event, id_account)
-	err = errors.Join(errDetail, errAssign)
+func EventDetailService(id_event int, id_account int) (res ServiceResult[models.EventResponse]) {
+	var DetailResponse models.EventResponse
+	repositories.EventRepository.Wrapper.IDEvent = uint(id_event)
+	eventDetail := repositories.EventRepository.Find()
+	authorizeEvent := EventRoleCheck(id_event, id_account)
 	// fmt.Println(id_account, id_event)
-	if statusAssign != "unauthorized" {
-		if statusAssign == "registered" {
+	if !authorizeEvent.Exception.Unauthorized {
+		DetailResponse.Data = &eventDetail.Result
+		if !authorizeEvent.Exception.UserNotRegisteredToEvent {
 			DetailResponse.RegisterStatus = 1
 		} else {
 			DetailResponse.RegisterStatus = 0
 		}
-		return DetailResponse, statusDetail, errAssign
-
 	} else {
-		return models.EventResponse{
-			Data:           &models.Events{},
-			RegisterStatus: 0,
-		}, statusAssign, err
+		res.Result = DetailResponse
+		res.Exception.Unauthorized = true
 	}
-
+	res.Error = errors.Join(eventDetail.RowsError, authorizeEvent.Error)
+	return res
 }
-func GetEventStatus(id_event int, id_account int) (res string, status string, err error) {
-	eventData, statusDetail, err := EventDetailService(id_event, id_account)
-	if statusDetail == "ok" {
-		startTime := eventData.Data.StartEvent
-		endTime := eventData.Data.EndEvent
+func GetEventStatus(id_event int, id_account int) (res ServiceResult[bool]) {
+	eventData := EventDetailService(id_event, id_account)
+	res.Error = eventData.Error
+	if !eventData.Exception.Unauthorized {
+		startTime := eventData.Result.Data.StartEvent
+		endTime := eventData.Result.Data.EndEvent
 		curTime := time.Now()
 		if curTime.After(startTime) && curTime.Before(endTime) {
-			res = "OnGoing"
+			res.Result = true
+			res.Exception.EventOnGoing = true
 		} else if curTime.Before(startTime) {
-			res = "NotStart"
+			res.Result = false
+			res.Exception.EventNotStart = true
 		} else if curTime.After(endTime) {
-			res = "Finish"
+			res.Result = false
+			res.Exception.EventTimeOut = true
 		}
-		return res, statusDetail, err
+		return res
 	} else {
-		return "error", statusDetail, err
+		res.Exception.Unauthorized = true
+		return res
 	}
 
 }
-
-func EventRegisterService(id_event int, id_account int, eventCode string) (data interface{}, status string, err error) {
-	var AssignUserToEvent *gorm.DB
-	statusAssign, errAssign := EventRoleCheck(id_event, id_account)
-	if statusAssign == "registered" {
-		return data, statusAssign, errAssign
-	} else if statusAssign == "unregistered" {
-		// It means the event is public event
-		data, AssignUserToEvent = repositories.CreateEventAssign(id_event, id_account)
-		status, err = middleware.RecordCheck(AssignUserToEvent)
-	} else if statusAssign == "unauthorized" {
-		dataEvent, _ := repositories.GetEventDetailByCode(eventCode)
-		// fmt.Println("data :", dataEvent)
-		if dataEvent.IDEvent == uint(id_event) {
-			data, AssignUserToEvent = repositories.CreateEventAssign(id_event, id_account)
-			status, err = middleware.RecordCheck(AssignUserToEvent)
+func AssignUserToEvent(id_event int, id_account int) (res ServiceResult[models.Events]) {
+	repositories.EventRepository.Wrapper.IDEvent = uint(id_event)
+	repositories.EventAssignRepository.Wrapper = models.EventAssign{
+		IDEvent:   uint(id_event),
+		IDAccount: uint(id_account),
+	}
+	eventAssigned := repositories.EventRepository.Create()
+	return ServiceResult[models.Events]{
+		Result: eventAssigned.Result,
+		Error:  eventAssigned.RowsError,
+	}
+}
+func EventRegisterService(id_event int, id_account int, eventCode string) (res ServiceResult[models.Events]) {
+	authorizeEvent := EventRoleCheck(id_event, id_account)
+	repositories.EventRepository.Wrapper.IDEvent = uint(id_event)
+	eventData := repositories.EventRepository.Find()
+	if authorizeEvent.Result {
+		res = ServiceResult[models.Events]{
+			Result: eventData.Result,
+			Error:  errors.Join(authorizeEvent.Error, eventData.RowsError),
+		}
+	} else if authorizeEvent.Exception.UserNotRegisteredToEvent {
+		res = AssignUserToEvent(id_event, id_account)
+		res.Error = errors.Join(res.Error, authorizeEvent.Error, eventData.RowsError)
+	} else if authorizeEvent.Exception.Unauthorized {
+		repositories.EventRepository.Wrapper.SID = eventCode
+		if eventData.Result.IDEvent == uint(id_event) {
+			res = AssignUserToEvent(id_event, id_account)
+			res.Error = errors.Join(res.Error, authorizeEvent.Error)
 		} else {
-			status = "invalid-event-code"
+			res.Exception.InvalidEventCode = true
+			res.Error = authorizeEvent.Error
 		}
 	}
-	return data, status, err
+	return res
 }

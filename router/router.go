@@ -16,7 +16,6 @@ func StartService() {
 		routerGroup.POST("/register-event", middleware.AuthUser, controller.EventRegisterController)
 		routerGroup.POST("/exam", middleware.AuthUser, controller.ExamController)
 		routerGroup.GET("/problemset-list", middleware.AuthUser, controller.ProblemSetController)
-		routerGroup.GET("/questions", middleware.AuthUser, controller.QuestionsController)
 		routerGroup.POST("/login", controller.LoginController)
 		routerGroup.POST("/register", controller.RegisterController)
 		routerGroup.GET("/", controller.HomeController)
