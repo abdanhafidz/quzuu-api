@@ -12,7 +12,7 @@ import (
 func EventDetailController(c *gin.Context) {
 
 	var req models.EventDetailRequest
-	c.ShouldBindJSON(&req)
+	c.ShouldBind(&req)
 
 	var account models.AccountData
 	cParam, _ := c.Get("accountData")
