@@ -22,7 +22,11 @@ RUN echo "DB_HOST=aws-0-ap-southeast-1.pooler.supabase.com" >> .env && \
     echo "HOST_ADDRESS = 0.0.0.0" >> .env && \
     echo "HOST_PORT = 7860" >> .env && \
     echo "SALT=@quzuuAp12025" >> .env
-
+    
+RUN mkdir -p /app/audio && \
+    chmod 777 /app/audio && \
+    chown -R $(whoami):$(whoami) /app/audio
+    
 # Build aplikasi
 RUN go build -o main .
 
